@@ -1,56 +1,28 @@
-const bcrypt = require("bcryptjs");
 const { z } = require("zod");
-const db = require("../db");
-const { signToken } = require("../utils/jwt");
+const authService = require("../services/auth.service");
 
 const registerSchema = z.object({
-  name: z.string().trim().min(2).max(120),
-  email: z.string().trim().email().max(255),
-  password: z.string().min(8).max(72)
+  username: z.string().trim().min(4).max(10),
+  name: z.string().trim().min(4).max(60),
+  email: z.string().trim().email().max(120),
+  password: z.string().min(8).max(25)
 });
 
 const loginSchema = z.object({
-  email: z.string().trim().email().max(255),
+  email: z.string().trim().email().max(120),
   password: z.string().min(1)
 });
 
-function buildAuthResponse(user) {
-  const token = signToken({
-    sub: user.id,
-    email: user.email
-  });
-
-  return {
-    token,
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      createdAt: user.created_at
-    }
-  };
-}
+const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1)
+});
 
 async function register(req, res, next) {
   try {
     const data = registerSchema.parse(req.body);
-    const existingUser = await db.query("SELECT id FROM users WHERE email = $1", [
-      data.email.toLowerCase()
-    ]);
+    const authResponse = await authService.registerUser(data);
 
-    if (existingUser.rowCount > 0) {
-      return res.status(409).json({ message: "Email already registered" });
-    }
-
-    const passwordHash = await bcrypt.hash(data.password, 12);
-    const result = await db.query(
-      `INSERT INTO users (name, email, password_hash)
-       VALUES ($1, $2, $3)
-       RETURNING id, name, email, created_at`,
-      [data.name, data.email.toLowerCase(), passwordHash]
-    );
-
-    return res.status(201).json(buildAuthResponse(result.rows[0]));
+    return res.status(201).json(authResponse);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -66,23 +38,27 @@ async function register(req, res, next) {
 async function login(req, res, next) {
   try {
     const data = loginSchema.parse(req.body);
-    const result = await db.query(
-      "SELECT id, name, email, password_hash, created_at FROM users WHERE email = $1",
-      [data.email.toLowerCase()]
-    );
+    const authResponse = await authService.loginUser(data);
 
-    if (result.rowCount === 0) {
-      return res.status(401).json({ message: "Invalid email or password" });
+    return res.json(authResponse);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        message: "Invalid request body",
+        errors: error.flatten().fieldErrors
+      });
     }
 
-    const user = result.rows[0];
-    const passwordMatches = await bcrypt.compare(data.password, user.password_hash);
+    return next(error);
+  }
+}
 
-    if (!passwordMatches) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
+async function refresh(req, res, next) {
+  try {
+    const data = refreshTokenSchema.parse(req.body);
+    const authResponse = await authService.refreshToken(data.refreshToken);
 
-    return res.json(buildAuthResponse(user));
+    return res.json(authResponse);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -102,5 +78,6 @@ async function me(req, res) {
 module.exports = {
   register,
   login,
+  refresh,
   me
 };

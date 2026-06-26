@@ -1,18 +1,36 @@
 @baseURL = http://localhost:3000
 @userEmail = "hendro.steven@gmail.com"
 @userPassword = "password123"
+@refreshToken = "paste-refresh-token-here"
 
 ### Health check
 GET {{baseURL}}/health
 
 
 ### Register a new user
-POST {{baseURL}}/auth/register
+POST {{baseURL}}/api/auth/register
 Content-Type: application/json
 
 {
+    "username": "admin",
     "name": "Administrator",
     "email": "admin@gmail.com",
-    "password": "password123",
-    "role": "ADMIN"
+    "password": "password123"
+}
+
+### Login
+POST {{baseURL}}/api/auth/login
+Content-Type: application/json
+
+{
+    "email": {{userEmail}},
+    "password": {{userPassword}}
+}
+
+### Refresh token
+POST {{baseURL}}/api/auth/refresh
+Content-Type: application/json
+
+{
+    "refreshToken": {{refreshToken}}
 }

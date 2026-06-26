@@ -1,9 +1,15 @@
 const jwt = require("jsonwebtoken");
-const { jwtSecret, jwtExpiresIn } = require("../config/env");
+const { jwtSecret, jwtExpiresIn, jwtRefreshExpiresIn } = require("../config/env");
 
 function signToken(payload) {
   return jwt.sign(payload, jwtSecret, {
     expiresIn: jwtExpiresIn
+  });
+}
+
+function signRefreshToken(payload) {
+  return jwt.sign(payload, jwtSecret, {
+    expiresIn: jwtRefreshExpiresIn
   });
 }
 
@@ -12,6 +18,7 @@ function verifyToken(token) {
 }
 
 module.exports = {
+  signRefreshToken,
   signToken,
   verifyToken
 };
