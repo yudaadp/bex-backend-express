@@ -146,8 +146,10 @@ src/
   server.js
   config/
     env.js
+    swagger.js
   controllers/
     auth.controller.js
+    users.controller.js
   db/
     index.js
     migrate.js
@@ -156,8 +158,12 @@ src/
     auth.middleware.js
     error.middleware.js
     rate-limit.middleware.js
+  services/
+    auth.service.js
+    users.service.js
   routes/
     auth.routes.js
+    users.routes.js
   utils/
     jwt.js
 ```
