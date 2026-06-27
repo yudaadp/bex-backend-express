@@ -49,7 +49,7 @@ docker compose up -d
 Atau gunakan PostgreSQL lokal dan buat database:
 
 ```bash
-createdb express_starter
+createdb bex
 ```
 
 4. Jalankan migrasi:
