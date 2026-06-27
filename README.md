@@ -113,8 +113,8 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "email": "demo@example.com",
-  "password": "password123"
+  "email": "admin@bex.com",
+  "password": "admin123"
 }
 ```
 

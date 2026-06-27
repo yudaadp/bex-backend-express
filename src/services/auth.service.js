@@ -45,7 +45,7 @@ async function registerUser(data) {
   const passwordHash = await bcrypt.hash(data.password, 12);
   const result = await db.query(
     `INSERT INTO users (username, name, email, password, role_id)
-     VALUES ($1, $2, $3, $4, 1)
+     VALUES ($1, $2, $3, $4, 2)
      RETURNING id, username, name, email, role_id`,
     [data.username, data.name, email, passwordHash]
   );
