@@ -1,7 +1,9 @@
+#REST CLIENT VSCODE
+
 @baseURL = http://localhost:3000
-@userEmail = "hendro.steven@gmail.com"
-@userPassword = "password123"
-@refreshToken = "paste-refresh-token-here"
+@userEmail = "admin@bex.com"
+@userPassword = "admin123"
+@refreshToken = "paste-ur-refresh-token-here"
 
 ### Health check
 GET {{baseURL}}/health
@@ -12,13 +14,14 @@ POST {{baseURL}}/api/auth/register
 Content-Type: application/json
 
 {
-    "username": "admin",
-    "name": "Administrator",
-    "email": "admin@gmail.com",
+    "username": "sample 1",
+    "name": "Sample User",
+    "email": "sample@gmail.com",
     "password": "password123"
 }
 
 ### Login
+# @name loginRequest
 POST {{baseURL}}/api/auth/login
 Content-Type: application/json
 
@@ -27,6 +30,10 @@ Content-Type: application/json
     "password": {{userPassword}}
 }
 
+### Save the token from the login response to use in subsequent requests
+#@authToken = {{loginRequest.response.body.token}}
+@authToken = {{loginRequest.response.body.$.token}}
+
 ### Refresh token
 POST {{baseURL}}/api/auth/refresh
 Content-Type: application/json
@@ -34,3 +41,8 @@ Content-Type: application/json
 {
     "refreshToken": {{refreshToken}}
 }
+
+### Users
+GET {{baseURL}}/api/users
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
