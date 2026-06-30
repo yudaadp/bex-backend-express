@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const db = require("../db");
 const { signRefreshToken, signToken, verifyToken } = require("../utils/jwt");
+const {decode} = require("jsonwebtoken");
 
 function createHttpError(statusCode, message) {
   const error = new Error(message);

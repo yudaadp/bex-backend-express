@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const db = require("../db");
 
 const USER_RESPONSE_FIELDS = `
+  u.id,
   u.username,
   u.name AS nama,
   u.email,
@@ -11,6 +12,16 @@ const USER_RESPONSE_FIELDS = `
   u.created_by
 `;
 
+const INSERT_RESPONSE_FIELDS = `
+  id,
+  username,
+  name AS nama,
+  email,
+  active,
+  role_id,
+  created_at,
+  created_by
+`;
 
 function createHttpError(statusCode, message) {
   const error = new Error(message);
@@ -74,7 +85,7 @@ async function getUserById(id) {
   const result = await db.query(
     `SELECT ${USER_RESPONSE_FIELDS}
      FROM users u INNER JOIN roles r on r.id = u.role_id
-     WHERE id = $1`,
+     WHERE u.id = $1`,
     [id]
   );
 
@@ -97,7 +108,7 @@ async function createUser(data, actorUsername) {
   const result = await db.query(
     `INSERT INTO users (username, name, email, password, role_id, active, created_by, last_update_by)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
-     RETURNING ${USER_RESPONSE_FIELDS}`,
+     RETURNING ${INSERT_RESPONSE_FIELDS}`,
     [
       data.username,
       data.nama,

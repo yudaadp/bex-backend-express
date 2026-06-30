@@ -6,6 +6,7 @@ const { corsOrigin } = require("./config/env");
 const swaggerSpec = require("./config/swagger");
 const authRoutes = require("./routes/auth.routes");
 const usersRoutes = require("./routes/users.routes");
+const rolesRoutes = require("./routes/roles.routes");
 const { notFound, errorHandler } = require("./middleware/error.middleware");
 
 const app = express();
@@ -49,6 +50,7 @@ app.get("/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/roles", rolesRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
