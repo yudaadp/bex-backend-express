@@ -38,11 +38,42 @@ function handleValidationError(error, res) {
   });
 }
 
+// async function list(req, res, next) {
+//   try {
+//     const data = await usersService.listUsers();
+//
+//     return res.json({ data });
+//   } catch (error) {
+//     return next(error);
+//   }
+// }
+
 async function list(req, res, next) {
   try {
-    const data = await usersService.listUsers();
+    const {
+      draw,
+      start = 0,
+      length = 10,
+      search,
+      role_id
+    } = req.query;
 
-    return res.json({ data });
+    const searchValue = search && search.value ? search.value : '';
+
+    const result = await usersService.listUsersDt({
+      start: parseInt(start, 10),
+      length: parseInt(length, 10),
+      searchValue,
+      role_id
+    });
+
+    return res.json({
+      draw: parseInt(draw, 10) || 1,
+      recordsTotal: result.recordsTotal,
+      recordsFiltered: result.recordsFiltered,
+      data: result.data
+    });
+
   } catch (error) {
     return next(error);
   }

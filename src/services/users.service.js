@@ -81,6 +81,56 @@ async function listUsers() {
   return result.rows;
 }
 
+async function listUsersDt(params) {
+  const { start, length, searchValue, role_id } = params;
+
+  //console.log(params);
+
+  let baseQuery = `
+    FROM users u 
+    INNER JOIN roles r ON r.id = u.role_id
+    WHERE 1=1
+  `;
+
+  const queryValues = [];
+  let paramIndex = 1;
+
+  const totalQuery = await db.query(`SELECT COUNT(u.id) as total FROM users u`);
+  const recordsTotal = parseInt(totalQuery.rows[0].total, 10);
+
+  if (searchValue) {
+    baseQuery += ` AND (u.name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex} OR u.username ILIKE $${paramIndex})`;
+    queryValues.push(`%${searchValue}%`);
+    paramIndex++;
+  }
+
+  if (role_id) {
+    baseQuery += ` AND u.role_id = $${paramIndex}`;
+    queryValues.push(role_id);
+    paramIndex++;
+  }
+
+  const filteredQuery = await db.query(`SELECT COUNT(u.id) as total ${baseQuery}`, queryValues);
+  const recordsFiltered = parseInt(filteredQuery.rows[0].total, 10);
+
+  baseQuery += ` ORDER BY u.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+  queryValues.push(length, start);
+
+  //console.log(baseQuery);
+  //console.log(queryValues);
+
+  const dataQuery = await db.query(
+      `SELECT ${USER_RESPONSE_FIELDS} ${baseQuery}`,
+      queryValues
+  );
+
+  return {
+    recordsTotal,
+    recordsFiltered,
+    data: dataQuery.rows
+  };
+}
+
 async function getUserById(id) {
   const result = await db.query(
     `SELECT ${USER_RESPONSE_FIELDS}
@@ -181,5 +231,6 @@ module.exports = {
   createUser,
   getUserById,
   listUsers,
+  listUsersDt,
   updateUser
 };

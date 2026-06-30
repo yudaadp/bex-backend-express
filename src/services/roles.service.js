@@ -1,6 +1,4 @@
-const bcrypt = require("bcryptjs");
 const db = require("../db");
-const { userToken } = require("../utils/jwt");
 
 const ROLES_RESPONSE_FIELDS = `
   id,
@@ -59,6 +57,56 @@ async function listRoles() {
 
   return result.rows;
 }
+
+async function listRolesDt(params) {
+  const { start, length, searchValue, active } = params;
+
+  console.log(params);
+
+  let baseQuery = `
+    FROM roles 
+    WHERE 1=1
+  `;
+
+  const queryValues = [];
+  let paramIndex = 1;
+
+  const totalQuery = await db.query(`SELECT COUNT(id) as total FROM roles`);
+  const recordsTotal = parseInt(totalQuery.rows[0].total, 10);
+
+  if (searchValue) {
+    baseQuery += ` AND (role_name ILIKE $${paramIndex} OR role_desc ILIKE $${paramIndex})`;
+    queryValues.push(`%${searchValue}%`);
+    paramIndex++;
+  }
+
+  if (active) {
+    baseQuery += ` AND active = $${paramIndex}`;
+    queryValues.push(active);
+    paramIndex++;
+  }
+
+  const filteredQuery = await db.query(`SELECT COUNT(id) as total ${baseQuery}`, queryValues);
+  const recordsFiltered = parseInt(filteredQuery.rows[0].total, 10);
+
+  baseQuery += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+  queryValues.push(length, start);
+
+  console.log(baseQuery);
+  console.log(queryValues);
+
+  const dataQuery = await db.query(
+      `SELECT ${ROLES_RESPONSE_FIELDS} ${baseQuery}`,
+      queryValues
+  );
+
+  return {
+    recordsTotal,
+    recordsFiltered,
+    data: dataQuery.rows
+  };
+}
+
 
 async function getRoleById(id) {
   const result = await db.query(
@@ -139,5 +187,6 @@ module.exports = {
   createRole,
   getRoleById,
   listRoles,
+  listRolesDt,
   updateRole
 };

@@ -31,11 +31,42 @@ function handleValidationError(error, res) {
   });
 }
 
+// async function list(req, res, next) {
+//   try {
+//     const data = await roleService.listRoles();
+//
+//     return res.json({ data });
+//   } catch (error) {
+//     return next(error);
+//   }
+// }
+
 async function list(req, res, next) {
   try {
-    const data = await roleService.listRoles();
+    const {
+      draw,
+      start = 0,
+      length = 10,
+      search,
+      active
+    } = req.query;
 
-    return res.json({ data });
+    const searchValue = search && search.value ? search.value : '';
+
+    const result = await roleService.listRolesDt({
+      start: parseInt(start, 10),
+      length: parseInt(length, 10),
+      searchValue,
+      active
+    });
+
+    return res.json({
+      draw: parseInt(draw, 10) || 1,
+      recordsTotal: result.recordsTotal,
+      recordsFiltered: result.recordsFiltered,
+      data: result.data
+    });
+
   } catch (error) {
     return next(error);
   }
