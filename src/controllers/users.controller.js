@@ -22,6 +22,7 @@ const updateUserSchema = z
     active: activeSchema.optional()
   })
   .refine((data) => Object.keys(data).length > 0, {
+    errorCode: "ERROR_VALIDATION",
     message: "At least one field is required"
   });
 
@@ -31,6 +32,7 @@ function actorUsername(req) {
 
 function handleValidationError(error, res) {
   return res.status(400).json({
+    errorCode: "ERROR_VALIDATION",
     message: "Invalid request body",
     errors: error.flatten().fieldErrors
   });
@@ -38,9 +40,9 @@ function handleValidationError(error, res) {
 
 async function list(req, res, next) {
   try {
-    const users = await usersService.listUsers();
+    const data = await usersService.listUsers();
 
-    return res.json({ users });
+    return res.json({ data });
   } catch (error) {
     return next(error);
   }
@@ -48,9 +50,9 @@ async function list(req, res, next) {
 
 async function detail(req, res, next) {
   try {
-    const user = await usersService.getUserById(req.params.id);
+    const data = await usersService.getUserById(req.params.id);
 
-    return res.json({ user });
+    return res.json({ data });
   } catch (error) {
     return next(error);
   }
@@ -58,10 +60,10 @@ async function detail(req, res, next) {
 
 async function create(req, res, next) {
   try {
-    const data = createUserSchema.parse(req.body);
-    const user = await usersService.createUser(data, actorUsername(req));
+    const reqData = createUserSchema.parse(req.body);
+    const data = await usersService.createUser(reqData, actorUsername(req));
 
-    return res.status(201).json({ user });
+    return res.status(201).json({ data });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return handleValidationError(error, res);
@@ -73,10 +75,10 @@ async function create(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    const data = updateUserSchema.parse(req.body);
-    const user = await usersService.updateUser(req.params.id, data, actorUsername(req));
+    const reqData = updateUserSchema.parse(req.body);
+    const data = await usersService.updateUser(req.params.id, reqData, actorUsername(req));
 
-    return res.json({ user });
+    return res.json({ data });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return handleValidationError(error, res);

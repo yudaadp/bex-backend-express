@@ -26,6 +26,7 @@ async function register(req, res, next) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
+        errorCode: "ERROR_VALIDATION",
         message: "Invalid request body",
         errors: error.flatten().fieldErrors
       });
@@ -44,6 +45,7 @@ async function login(req, res, next) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
+        errorCode: "ERROR_VALIDATION",
         message: "Invalid request body",
         errors: error.flatten().fieldErrors
       });
@@ -62,6 +64,7 @@ async function refresh(req, res, next) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
+        errorCode: "ERROR_VALIDATION",
         message: "Invalid request body",
         errors: error.flatten().fieldErrors
       });

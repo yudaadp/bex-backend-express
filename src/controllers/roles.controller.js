@@ -15,6 +15,7 @@ const updateRoleSchema = z
     active: activeSchema.optional()
   })
   .refine((data) => Object.keys(data).length > 0, {
+    errorCode: "ERROR_VALIDATION",
     message: "At least one field is required"
   });
 
@@ -24,6 +25,7 @@ function actorUsername(req) {
 
 function handleValidationError(error, res) {
   return res.status(400).json({
+    errorCode: "ERROR_VALIDATION",
     message: "Invalid request body",
     errors: error.flatten().fieldErrors
   });
@@ -31,9 +33,9 @@ function handleValidationError(error, res) {
 
 async function list(req, res, next) {
   try {
-    const roles = await roleService.listRoles();
+    const data = await roleService.listRoles();
 
-    return res.json({ roles });
+    return res.json({ data });
   } catch (error) {
     return next(error);
   }
@@ -41,9 +43,9 @@ async function list(req, res, next) {
 
 async function detail(req, res, next) {
   try {
-    const role = await roleService.getRoleById(req.params.id);
+    const data = await roleService.getRoleById(req.params.id);
 
-    return res.json({ role });
+    return res.json({ data });
   } catch (error) {
     return next(error);
   }
@@ -51,10 +53,10 @@ async function detail(req, res, next) {
 
 async function create(req, res, next) {
   try {
-    const data = createRoleSchema.parse(req.body);
-    const role = await roleService.createRole(data, actorUsername(req));
+    const dataReq = createRoleSchema.parse(req.body);
+    const data = await roleService.createRole(dataReq, actorUsername(req));
 
-    return res.status(201).json({ role });
+    return res.status(201).json({ data });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return handleValidationError(error, res);
@@ -66,10 +68,10 @@ async function create(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    const data = updateRoleSchema.parse(req.body);
-    const role = await roleService.updateRole(req.params.id, data, actorUsername(req));
+    const dataReq = updateRoleSchema.parse(req.body);
+    const data = await roleService.updateRole(req.params.id, dataReq, actorUsername(req));
 
-    return res.json({ role });
+    return res.json({ data });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return handleValidationError(error, res);
